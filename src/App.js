@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
+import { Observable } from "windowed-observable";
 
 const Wrapper = styled.section`
   padding: 4em;
@@ -31,8 +32,12 @@ const TimerWrapper = styled.strong`
   justify-content: center;
 `;
 
+const fromZF = new Observable("fromZF");
+const toZF = new Observable("toZF");
+
 function App() {
   const [timer, setTimer] = useState(10);
+  const inputRef = useRef();
   useEffect(() => {
     if (timer > 0) {
       setTimeout(() => setTimer(timer - 1), 1000);
@@ -40,6 +45,19 @@ function App() {
       setTimeout(() => setTimer(10), 1000);
     }
   }, [timer]);
+
+  useEffect(() => {
+    fromZF.subscribe(handleMessage);
+    return () => {
+      fromZF.unsubscribe(handleMessage);
+    };
+  }, []);
+  const handleMessage = (data) => {
+    console.log(`this message come from ZF: ${data}`);
+  };
+  const handleClick = () => {
+    toZF.publish("Hello From React");
+  };
 
   return (
     <Wrapper>
@@ -50,6 +68,12 @@ function App() {
         <Card />
         <Card />
       </CardWrapper>
+      <div>
+        <input id="card-num" ref={inputRef} />
+        <button type="button" onClick={handleClick}>
+          Yolla
+        </button>
+      </div>
     </Wrapper>
   );
 }
